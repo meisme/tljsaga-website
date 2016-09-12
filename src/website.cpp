@@ -16,6 +16,8 @@
 
 #include "data/base.h"
 
+#include "utility.h"
+
 class website : public cppcms::application {
 public:
 	// Main website application
@@ -66,7 +68,7 @@ int main(int argc, char* argv[]) {
 	do {
 		++n;
 		if (error) {
-			std::cerr << "[ERROR] Application crashed, restarting application (" << n << '/' << MAX_RETRIES << ")" << std::endl;
+			std::cerr << utility::date() << " [ERROR] Application crashed, restarting application (" << n << '/' << MAX_RETRIES << ")" << std::endl;
 		}
 		error = false;
 		try {
@@ -82,6 +84,6 @@ int main(int argc, char* argv[]) {
 	} while (n < MAX_RETRIES && error);
 
 	if (error) {
-		std::cerr << "[FATAL] Application crashed, retries exhausted!" << std::endl;
+		std::cerr << utility::date() << " [FATAL] Application crashed, retries exhausted!" << std::endl;
 	}
 }
