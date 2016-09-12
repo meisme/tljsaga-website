@@ -1,0 +1,33 @@
+# Project folder for binary files
+bin/
+
+# Template c++ files
+*.tmpl.cpp
+*.tmpl-cpp
+
+# Visual Studio files
+ipch
+Debug
+Release
+.vs
+*.vcxproj.user
+*.sdf
+*.VC.opendb
+*.VC.db
+
+# Linux build files
+.d
+*.d
+*.gch
+
+# NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+
+# Binary files
+*.exe
+*.dll
+*.so
+*.a
+*.o

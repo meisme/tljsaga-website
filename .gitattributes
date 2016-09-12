@@ -1,0 +1,41 @@
+# Generic text
+*.txt text
+*.html text
+*.md text
+*.css text
+*.js text
+*.json text
+
+# C++
+*.h text
+*.hpp text
+*.c text
+*.cpp text
+
+# Python
+*.py text
+
+# Template
+*.tmpl text
+
+# Linux spesific
+*.sh eol=lf
+
+# Build system
+Makefile text
+
+# Windows spesific
+.sln eof=crlf
+.vcxproj eof=crlf
+.vcxproj.filters eof=crlf
+
+# Git spesific
+.gitignore eol=lf
+.gitattributes eol=lf
+
+# Images
+*.svg text
+*.jpg -text
+*.jpeg -text
+*.png -text
+*.gif -text
