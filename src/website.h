@@ -23,8 +23,6 @@
 
 #include <ctime>
 
-#include <boost/filesystem.hpp>
-
 #include <booster/log.h>
 
 #include <cppcms/application.h>

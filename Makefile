@@ -14,7 +14,7 @@ SHELL = /bin/sh
 
 NAME = tljsaga-website
 
-LIBS = -lcppcms -lbooster -lboost_system
+LIBS = -lcppcms -lbooster
 CXXFLAGS = -g -Wall -std=c++11
 LDFLAGS = -L/usr/local/lib/
 LDLIBS = $(LIBS)
