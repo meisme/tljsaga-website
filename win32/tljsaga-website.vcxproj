@@ -85,6 +85,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\src\settings.cpp" />
+    <ClCompile Include="..\src\utility.cpp" />
     <ClCompile Include="..\src\website.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +95,7 @@
     <ClInclude Include="..\src\data\redirect.h" />
     <ClInclude Include="..\src\return_value.h" />
     <ClInclude Include="..\src\settings.h" />
+    <ClInclude Include="..\src\utility.h" />
     <ClInclude Include="..\src\website.h" />
   </ItemGroup>
   <ItemGroup>
