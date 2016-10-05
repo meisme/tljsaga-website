@@ -22,6 +22,7 @@ LDLIBS = $(LIBS)
 SRCDIR = src
 OBJDIR = obj
 BINDIR = bin
+TESTDIR = tests
 TMPLDIR = src/templates
 DATAHEADERDIR = src/data
 
@@ -39,7 +40,6 @@ TEMPLATE_OBJECT := $(TEMPLATE_SOURCE:$(SRCDIR)/%.tmpl-cpp=$(OBJDIR)/%.o)
 CPP_SOURCES  := $(call rwildcard,$(SRCDIR)/,*.cpp)
 C_SOURCES  := $(call rwildcard,$(SRCDIR)/,*.c)
 SOURCES := $(CPP_SOURCES) $(C_SOURCES)
-HEADERS := $(call rwildcard,$(SRCDIR)/,*.cpp)
 DATA_HEADERS := $(call rwildcard,$(DATAHEADERDIR)/,*.h)
 OBJECTS := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
@@ -56,19 +56,28 @@ POSTCOMPILE.gch = mv -f $(patsubst $(SRCDIR)%,$(DEPDIR)%,$@).Td $(patsubst $(SRC
 
 .PHONY: all setup clean distclean dist deploy test run
 
+
 all: setup $(TARGET)
 
-setup:
-	@mkdir -p $(OBJDIR) $(BINDIR) $(DEPDIR)
+$(DEPDIR):
+	@mkdir -p "$@"
 
-$(OBJDIR)/%.o : $(SRCDIR)/%.cpp $(DEPDIR)/%.d $(PRECOMPILED_HEADER).gch
+$(OBJDIR):
+	@mkdir -p "$@"
+
+$(BINDIR):
+	@mkdir -p "$@"
+
+setup: $(OBJDIR) $(BINDIR) $(DEPDIR)
+
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(DEPDIR)/%.d $(PRECOMPILED_HEADER).gch
 	@test -d "$(@D)" || mkdir -p "$(@D)"
 	@test -d "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))" || mkdir -p "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))"
 	@echo COMPILE.cpp $< -o $@
 	@$(COMPILE.cpp) -c $< -o $@
 	@$(POSTCOMPILE)
 
-$(OBJDIR)/%.o : $(SRCDIR)/%.c $(DEPDIR)/%.d
+$(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPDIR)/%.d
 	@test -d "$(@D)" || mkdir -p "$(@D)"
 	@test -d "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))" || mkdir -p "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))"
 	@echo COMPILE.c $< -o $@
@@ -85,7 +94,7 @@ $(PRECOMPILED_HEADER).gch: $(PRECOMPILED_HEADER)
 $(TEMPLATE_SOURCE): $(TEMPLATES)
 	cppcms_tmpl_cc $^ -o $@
 
-$(TEMPLATE_OBJECT): $(TEMPLATE_SOURCE) $(DATA_HEADERS)
+$(TEMPLATE_OBJECT): $(OBJECT_DIR) $(TEMPLATE_SOURCE) $(DATA_HEADERS)
 	@echo COMPILE.tmpl-cpp $< -o $@
 	@$(COMPILE.tmpl-cpp) -c $< -o $@
 
@@ -98,6 +107,7 @@ clean:
 	find -name *.Td | xargs rm -f
 	find -name *.tmpl-cpp | xargs rm -f
 	rm -f $(TARGET)
+	@cd "$(TESTDIR)" && $(MAKE) clean
 
 distclean: clean
 	test -d "$(OBJDIR)" && find "$(OBJDIR)" -type d | tac | xargs rmdir || :
@@ -105,6 +115,7 @@ distclean: clean
 	test -d "$(DEPDIR)" && find "$(DEPDIR)" -name *.d -type f | xargs rm -f || :
 	test -d "$(DEPDIR)" && find "$(DEPDIR)" -type d | tac | xargs rmdir || :
 	test -e "$(PRECOMPILED_HEADER).gch" && rm "$(PRECOMPILED_HEADER).gch" || :
+	@cd "$(TESTDIR)" && $(MAKE) distclean
 
 run: all
 	$(RUNCMD)$(TARGET) -c $(CONFIG)
@@ -115,8 +126,8 @@ dist:
 deploy:
 	@echo "TODO: Deploy"
 
-test:
-	@echo "TODO: Tests"
+test: setup $(OBJECTS)
+	@cd "$(TESTDIR)" && $(MAKE) run
 
 
 $(DEPDIR)/%.d: ;
@@ -151,6 +162,7 @@ maintainer-clean: distclean
 			y*|Y* ) printf 'Yes.\n\n' ; true ;;\
 			* ) printf 'No.\n\n'; false ;;\
 		esac
+	@cd "$(TESTDIR)" && $(MAKE) maintainer-clean
 
 uninstall:
 	@echo "Application not installable - nothing to uninstall"

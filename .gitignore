@@ -1,9 +1,12 @@
-# Project folder for binary files
-bin/
+# Project folders for binary files
+bin
 
 # Template c++ files
 *.tmpl.cpp
 *.tmpl-cpp
+
+# Catch (C++ unit test framework)
+tests/src/catch.hpp
 
 # Visual Studio files
 ipch
@@ -20,6 +23,10 @@ Release
 *.d
 *.gch
 
+# Sublime text projects
+*.sublime-project
+*.sublime-workspace
+
 # NuGet
 *.nupkg
 **/packages/*
@@ -31,3 +38,9 @@ Release
 *.so
 *.a
 *.o
+
+# Images
+*.psd
+*.png
+*.jpg
+*.jpeg

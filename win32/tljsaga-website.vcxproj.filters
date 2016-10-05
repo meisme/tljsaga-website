@@ -30,13 +30,7 @@
     <ClCompile Include="..\src\data\base.cpp">
       <Filter>Source Files\data</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\data\blogpost.cpp">
-      <Filter>Source Files\data</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\settings.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\utility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -81,11 +81,7 @@
     <ClCompile Include="..\src\data\base.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\src\data\blogpost.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="..\src\settings.cpp" />
-    <ClCompile Include="..\src\utility.cpp" />
     <ClCompile Include="..\src\website.cpp" />
   </ItemGroup>
   <ItemGroup>
