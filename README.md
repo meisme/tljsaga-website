@@ -1,6 +1,9 @@
 TLJSaga website readme
 ======================
 
+## Status ##
+[![Build Status](https://api.shippable.com/projects/57f54b2bca30990e0038408f/badge?branch=master)](https://app.shippable.com/projects/57f54b2bca30990e0038408f)
+
 ## Build ##
 ### Linux ###
 To build the application on Linux run `make && make test`
