@@ -5,7 +5,7 @@
 // Version: 0.0.0 Alpha
 //
 // Copyright © 2016 Kristian Høy Horsberg
-// All Rights Reserved
+// Available under version 3 of GNU Affero General Public License
 //
 // Author: Kristian Høy Horsberg <khh1990@gmail.com>
 //

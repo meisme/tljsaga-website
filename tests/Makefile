@@ -1,11 +1,11 @@
-# Project: TLJSaga
+# Project: TLJSaga tests
 #
 # File: Makefile
 # Use:  Build the tests
-# Version: 0.0.0 Alpha
+# Version: 2016.10.05
 #
 # Copyright © 2016 Kristian Høy Horsberg
-# All Rights Reserved
+# Available under version 3 of GNU Affero General Public License
 #
 # Author: Kristian Høy Horsberg <khh1990@gmail.com>
 #
@@ -63,7 +63,7 @@ $(BINDIR):
 	@mkdir -p "$@"
 
 setup: $(OBJDIR) $(BINDIR) $(DEPDIR)
-	@test -z "$(MAKEFLAGS)" && /bin/echo -e '\e[1;31mThis file is not designed to be invoked directly. Run "make test " in the parent directory\e[0m' && false || :
+	@test -z "$(MAKEFLAGS)" && /bin/echo -e '\e[1;31mThis file is not designed to be invoked directly. Run "make test" in the parent directory\e[0m' && false || :
 
 $(CATCH):
 	wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp -O $@ || rm -f $(CATCH)

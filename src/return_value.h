@@ -1,11 +1,12 @@
 // Project: TLJSaga
 //
 // File: return_value.h
-// Use:  Class to box return values with a flag indicating if call was successful
-// Version: 0.0.0 Alpha
+// Use:  Class to box return values with a flag indicating if call was
+//       successful
+// Version: 2016.10.05
 //
 // Copyright © 2016 Kristian Høy Horsberg
-// All Rights Reserved
+// Available under version 3 of GNU Affero General Public License
 //
 // Author: Kristian Høy Horsberg <khh1990@gmail.com>
 //
