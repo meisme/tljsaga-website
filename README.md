@@ -16,7 +16,7 @@ modifications.
 
 ## Dependencies ##
 This software depends on the C++ libraries:
-  - cppcms
+  - cppcms version >= 1.0.5
   - booster (part of cppcms)
 
 Additionally the software requires these build dependencies:

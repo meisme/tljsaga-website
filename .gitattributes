@@ -5,6 +5,8 @@
 *.css text
 *.js text
 *.json text
+*.yml text
+*.yaml text
 
 # C++
 *.h text

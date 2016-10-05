@@ -1,0 +1,13 @@
+language: c
+
+compiler:
+  - gcc
+
+build:
+  ci:
+    - printf "deb http://apt.cppcms.com/ trusty main\ndeb-src http://apt.cppcms.com/ trusty main\n" > cppcms.list
+    - sudo mv cppcms.list /etc/apt/sources.list.d/
+    - sudo apt-get update
+    - sudo apt-get install cppcms-* libcppcms* --assume-yes
+    - mkdir -p shippable/testresultsx
+    - make && make test 'TESTOPTIONS=-r junit | tee ../shippable/testresults/make-test-result.xml'

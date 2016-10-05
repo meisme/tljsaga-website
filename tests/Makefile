@@ -100,7 +100,7 @@ distclean:
 	test -e "$(PRECOMPILED_HEADER).gch" && rm "$(PRECOMPILED_HEADER).gch" || :
 
 run: all
-	$(RUNCMD)$(TARGET)
+	$(RUNCMD)$(TARGET) $(TESTOPTIONS)
 
 
 $(DEPDIR)/%.d: ;
