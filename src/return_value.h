@@ -12,24 +12,40 @@
 
 #pragma once
 
-template <class T> class return_value {
+template<class T> class return_value {
 public:
-	return_value(T value, bool good = true) : _value(value), _good(good) {}
+	return_value(const T& value, bool good = true) : _value(value), _good(good) {}
 	return_value() : _good(false) {}
 
-	bool good() {
+	bool good() const {
 		return _good;
 	}
 
-	operator T() {
-		return value;
+	bool bad() const {
+		return !_good;
 	}
 
-	T value() {
+	bool operator !() const{
+		return !_good;
+	}
+
+	bool operator ==(const return_value<T>& other) const {
+		return _good == other._good && _value == other._value;
+	}
+
+	inline bool operator!=(const return_value<T>& other) const {
+		return !(*this == other);
+	}
+
+	operator T() const {
 		return _value;
 	}
 
-	const T& reference() {
+	T value() const {
+		return _value;
+	}
+
+	const T& reference() const {
 		return _value;
 	}
 
@@ -37,3 +53,7 @@ private:
 	T _value;
 	bool _good;
 };
+
+template<class T> return_value<T> make_return_value(const T& value, bool good = true) {
+	return return_value<T>(value, good);
+}
