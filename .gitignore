@@ -8,6 +8,11 @@ bin
 # Catch (C++ unit test framework)
 tests/src/catch.hpp
 
+# Coverage report
+tests/report.xml
+*.gcno
+*.gcda
+
 # Visual Studio files
 ipch
 Debug

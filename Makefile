@@ -54,7 +54,7 @@ LINK = $(CXX) $(LDFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 POSTCOMPILE.gch = mv -f $(patsubst $(SRCDIR)%,$(DEPDIR)%,$@).Td $(patsubst $(SRCDIR)%,$(DEPDIR)%,$@).d
 
-.PHONY: all setup clean distclean dist deploy test run
+.PHONY: all setup clean distclean maintainer-clean win32-clean dist deploy test run coverage
 
 
 all: setup $(TARGET)
@@ -124,6 +124,17 @@ distclean: clean win32-clean
 	@rm -fv "$(PRECOMPILED_HEADER).gch"
 	@cd "$(TESTDIR)" && $(MAKE) distclean
 
+maintainer-clean: distclean
+	@echo -en '\n'
+	@echo -e '\e[1;31mThis command is intended for maintainers to use; it'
+	@echo -e 'deletes files that may need special tools to rebuild.\e[0m'
+	@read -p "Continue? [y/N] " yn; \
+		case $$yn in \
+			y*|Y* ) printf 'Yes.\n\n' ; true ;;\
+			* ) printf 'No.\n\n'; false ;;\
+		esac
+	@cd "$(TESTDIR)" && $(MAKE) maintainer-clean
+
 run: all
 	$(RUNCMD)$(TARGET) -c $(CONFIG)
 
@@ -134,12 +145,14 @@ deploy:
 	@echo "TODO: Deploy"
 
 test: setup $(OBJECTS)
-	@cd "$(TESTDIR)" && $(MAKE) run
+	@cd "$(TESTDIR)" && $(MAKE) test
 
+coverage:
+	@cd "$(TESTDIR)" && $(MAKE) coverage
 
 $(DEPDIR)/%.d: ;
 
-.PRECIOUS: $(TARGET) $(OBJECTS) $(CXXOBJECTS) $(DEPDIR)/%.d
+.PRECIOUS: $(TARGET) $(OBJECTS) $(DEPDIR)/%.d
 
 -include $(patsubst $(SRCDIR)%.cpp,$(DEPDIR)%.d,$(CPP_SOURCES))
 -include $(patsubst $(SRCDIR)%.c,$(DEPDIR)%.d,$(C_SOURCES))
@@ -147,7 +160,7 @@ $(DEPDIR)/%.d: ;
 
 # Everything below is cruft for GNU compliance
 .PHONY: install install-html install-dvi install-pfd install-ps install-strip\
-	mostlyclean maintainer-clean uninstall TAGS info dvi html pdf ps check
+	mostlyclean uninstall TAGS info dvi html pdf ps check
 
 install:
 	@echo "Application is not installable" 1>&2

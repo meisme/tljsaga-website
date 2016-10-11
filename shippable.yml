@@ -9,5 +9,8 @@ build:
     - sudo mv cppcms.list /etc/apt/sources.list.d/
     - sudo apt-get update
     - sudo apt-get install cppcms-* libcppcms* --assume-yes
-    - mkdir -p shippable/testresultsx
-    - make && make test 'TESTOPTIONS=-r junit | tee ../shippable/testresults/make-test-result.xml'
+    - sudo pip install gcovr
+    - mkdir -p shippable/testresults shippable/codecoverage
+    - make
+    - make test 'TESTOPTIONS=-r junit > ../shippable/testresults/results.xml'
+    - make coverage 'REPORT=../shippable/codecoverage/report.xml'

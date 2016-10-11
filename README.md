@@ -18,14 +18,19 @@ Not tested on Mac, but it should be possilbe to use the Linux build with few
 modifications.
 
 ## Dependencies ##
-This software depends on the C++ libraries:
-  - cppcms version >= 1.0.5
-  - booster (part of cppcms)
+Libraries:
+ - cppcms version >= 1.0.5
+ - booster (part of cppcms)
 
-Additionally the software requires these build dependencies:
-  - Catch (unit test framework for C++) †
+## Optional dependencies ##
+For building tests:
+ - Catch (unit test framework for C++) †
 
-† Automatically downloaded on Linux by running `make`
+For test code coverage reports:
+ - GCC
+ - gcovr (from PyPI)
+
+† Automatically downloaded by `make` on Linux
 
 ## Encoding ##
 All text files should be UTF-8 without BOM and anything else is considered a

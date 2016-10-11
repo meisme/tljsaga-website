@@ -17,40 +17,56 @@ NAME = tljsaga-website-tests
 CXXFLAGS = -g -Wall -pedantic -std=c++11
 LDLIBS = $(LIBS) -lcppcms -lbooster
 
+GCOVR = gcovr
+GCOVRFLAGS = --xml-pretty -r
+
 SRCDIR = src
 OBJDIR = obj
+COV_OBJDIR = covtests
+COV_MAINOBJDIR = covmain
 BINDIR = bin
 WIN32DIR= win32
 MAINSRC = ../src
 MAINOBJ = ../obj
 MAINFILE = $(MAINSRC)/website.cpp
+TESTFILE = $(SRCDIR)/tests.cpp
 
 TARGET = $(BINDIR)/$(NAME)
+COVERAGETARGET = $(TARGET)-coverage
 CATCH = $(SRCDIR)/catch.hpp
 RUN = ./
 RUNCMD = $(shell printf '$(RUN)'; test '$(RUN)' != './' && printf ' ' || : )
-CONFIG = res/config.js
+REPORT := $(shell test ! -z '$(REPORT)' && printf '$(REPORT)' || printf 'report.xml' )
 
 rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 
-TEST_SOURCES := $(call rwildcard,$(MAINSRC),*.cpp)
-TEST_SOURCES := $(filter-out $(MAINFILE),$(TEST_SOURCES))
-CPP_SOURCES  := $(call rwildcard,$(SRCDIR)/,*.cpp)
-SOURCES := $(CPP_SOURCES) $(C_SOURCES) $(TEST_SOURCES)
+SOURCES  := $(call rwildcard,$(SRCDIR)/,*.cpp)
+COV_SOURCES := $(filter-out $(TESTFILE),$(SOURCES))
+MAIN_SOURCES := $(call rwildcard,$(MAINSRC),*.cpp)
+MAIN_SOURCES := $(filter-out $(MAINFILE),$(MAIN_SOURCES))
+
 OBJECTS := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
-OBJECTS := $(OBJECTS:$(MAINSRC)/%.cpp=$(MAINOBJ)/%.o)
+MAIN_OBJECTS := $(MAIN_SOURCES:$(MAINSRC)/%.cpp=$(MAINOBJ)/%.o)
+COV_OBJECTS := $(COV_SOURCES:$(SRCDIR)/%.cpp=$(COV_OBJDIR)/%.o)
+COV_MAINOBJECTS := $(MAIN_SOURCES:$(MAINSRC)/%.cpp=$(COV_MAINOBJDIR)/%.o)
+
+TESTOBJECT = $(TESTFILE:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
 DEPDIR := .d
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
 COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
+COVFLAGS = -fprofile-arcs -ftest-coverage -fPIC -O0 -g
+ 
 COMPILE.cpp = $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
+COVERAGE.COMPILE.cpp = $(COMPILE.cpp) $(COVFLAGS)
 LINK = $(CXX) $(LDFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
+COVERAGE.LINK = $(LINK) $(COVFLAGS) -lgcov
 POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 
-.PHONY: all setup clean distclean run maintainer-clean win32-clean test check
+.PHONY: all warning setup clean distclean run maintainer-clean win32-clean test coverage
 
-all: setup $(TARGET)
+all: setup $(TARGET) $(COVERAGETARGET)
 
 $(DEPDIR):
 	@mkdir -p "$@"
@@ -61,8 +77,17 @@ $(OBJDIR):
 $(BINDIR):
 	@mkdir -p "$@"
 
-setup: $(OBJDIR) $(BINDIR) $(DEPDIR)
-	@test -z "$(MAKEFLAGS)" && /bin/echo -e '\e[1;31mThis file is not designed to be invoked directly. Run "make test" in the parent directory\e[0m' && false || :
+$(COV_OBJDIR):
+	@mkdir -p "$@"
+
+$(COV_MAINOBJDIR):
+	@mkdir -p "$@"
+
+warning:
+	@test -z "$(MAKEFLAGS)" && \
+	env echo -e '\e[1;31mThis file is not designed to be invoked directly. Run "make test" or "make coverage" in the parent directory\e[0m' && false || :
+
+setup: warning $(OBJDIR) $(BINDIR) $(DEPDIR) $(COV_OBJDIR) $(COV_MAINOBJDIR) $(CATCH)
 
 $(CATCH):
 	wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp -O $@ || rm -f $(CATCH)
@@ -74,25 +99,47 @@ $(OBJDIR)/%.o : $(SRCDIR)/%.cpp $(DEPDIR)/%.d
 	@$(COMPILE.cpp) -c $< -o $@
 	@$(POSTCOMPILE)
 
-$(OBJDIR)/%.o : $(SRCDIR)/%.c $(DEPDIR)/%.d
+$(MAIN_OBJDIR)/%.o: $(MAINSRC)/%.cpp $(DEPDIR)/%.d
 	@test -d "$(@D)" || mkdir -p "$(@D)"
 	@test -d "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))" || mkdir -p "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))"
-	@echo COMPILE.c $< -o $@
-	@$(COMPILE.c) -c $< -o $@
+	@echo COMPILE.cpp $< -o $@
+	@$(COMPILE.cpp) -c $< -o $@
 	@$(POSTCOMPILE)
 
-$(TARGET): $(CATCH) $(OBJECTS) $(TEMPLATE_OBJECT)
-	@echo LINK $(OBJECTS) $(TEMPLATE_OBJECT) -o $@ $(LOADLIBES) $(LDLIBS)
-	@$(LINK) $(OBJECTS) $(TEMPLATE_OBJECT) -o $@ $(LOADLIBES) $(LDLIBS)
+$(COV_OBJDIR)/%.o: $(SRCDIR)/%.cpp $(DEPDIR)/%.d
+	@test -d "$(@D)" || mkdir -p "$(@D)"
+	@test -d "$(patsubst $(COV_OBJDIR)/%,$(DEPDIR)/%,$(@D))" || mkdir -p "$(patsubst $(COV_OBJDIR)/%,$(DEPDIR)/%,$(@D))"
+	@echo COVERAGE.COMPILE.cpp $< -o $@
+	@$(COVERAGE.COMPILE.cpp) -c $< -o $@
+	@$(POSTCOMPILE)
 
+$(COV_MAINOBJDIR)/%.o: $(MAINSRC)/%.cpp $(DEPDIR)/%.d
+	@test -d "$(@D)" || mkdir -p "$(@D)"
+	@test -d "$(patsubst $(COV_MAINOBJDIR)/%,$(DEPDIR)/%,$(@D))" || mkdir -p "$(patsubst $(COV_MAINOBJDIR)/%,$(DEPDIR)/%,$(@D))"
+	@echo COVERAGE.COMPILE.cpp $< -o $@
+	@$(COVERAGE.COMPILE.cpp) -c $< -o $@
+	@$(POSTCOMPILE)
 
-run: all
-	$(RUNCMD)$(TARGET) $(TESTOPTIONS)
+$(TARGET): $(MAIN_OBJECTS) $(OBJECTS)
+	@echo LINK $^ -o $@ $(LDLIBS)
+	@$(LINK) $^ -o $@ $(LDLIBS)
+
+$(COVERAGETARGET): $(COV_MAINOBJECTS) $(COV_OBJECTS) $(TESTOBJECT)
+	@echo COVERAGE.LINK $^ -o $@ $(LDLIBS)
+	@$(COVERAGE.LINK) $^ -o $@ $(LDLIBS)
 
 clean:
 	@test -d "$(OBJDIR)" && find "$(OBJDIR)" -name \*.o | xargs rm -vf || :
+	@test -d "$(COV_OBJDIR)" && find "$(COV_OBJDIR)" -name \*.o | xargs rm -vf || :
+	@test -d "$(COV_OBJDIR)" && find "$(COV_OBJDIR)" -name \*.gcda | xargs rm -vf || :
+	@test -d "$(COV_OBJDIR)" && find "$(COV_OBJDIR)" -name \*.gcno | xargs rm -vf || :
+	@test -d "$(COV_MAINOBJDIR)" && find "$(COV_MAINOBJDIR)" -name \*.o | xargs rm -vf || :
+	@test -d "$(COV_MAINOBJDIR)" && find "$(COV_MAINOBJDIR)" -name \*.gcda | xargs rm -vf || :
+	@test -d "$(COV_MAINOBJDIR)" && find "$(COV_MAINOBJDIR)" -name \*.gcno | xargs rm -vf || :
 	@find -name \*.Td | xargs rm -fv
 	@rm -fv $(TARGET)
+	@rm -fv $(COVERAGETARGET)
+	@rm -fv $(REPORT)
 
 win32-clean:
 	@rm -fv $(WIN32DIR)/*.VC.db
@@ -106,30 +153,23 @@ distclean: win32-clean
 	@test -d "$(BINDIR)" && find "$(BINDIR)" -type d | tac | xargs rmdir -v || :
 	@test -d "$(DEPDIR)" && find "$(DEPDIR)" -name *.d -type f | xargs rm -fv || :
 	@test -d "$(DEPDIR)" && find "$(DEPDIR)" -type d | tac | xargs rmdir -v || :
+	@test -d "$(COV_OBJDIR)" && find "$(COV_OBJDIR)" -type d | tac | xargs rmdir -v || :
+	@test -d "$(COV_MAINOBJDIR)" && find "$(COV_MAINOBJDIR)" -type d | tac | xargs rmdir -v || :
 
-maintainer-clean: distclean
-	@echo -en '\n'
-	@echo -e '\e[1;31mThis command is intended for maintainers to use; it'
-	@echo -e 'deletes files that may need special tools to rebuild.\e[0m'
-	@read -p "Continue? [y/N] " yn; \
-		case $$yn in \
-			y*|Y* ) printf 'Yes.\n\n' ; true ;;\
-			* ) printf 'No.\n\n'; false ;;\
-		esac
-	@cd "$(TESTDIR)" && $(MAKE) maintainer-clean
+maintainer-clean:
+	@rm -fv $(CATCH)
 
 $(DEPDIR)/%.d: ;
 
-.PRECIOUS: $(TARGET) $(OBJECTS) $(CXXOBJECTS) $(DEPDIR)/%.d
+.PRECIOUS: $(TARGET) $(COVERAGETARGET) $(OBJECTS) $(COV_OBJECTS) $(COV_MAINOBJECTS) $(DEPDIR)/%.d
 
 -include $(patsubst $(SRCDIR)%.cpp,$(DEPDIR)%.d,$(CPP_SOURCES))
 -include $(patsubst $(SRCDIR)%.c,$(DEPDIR)%.d,$(C_SOURCES))
 -include $(patsubst $(SRCDIR)%,$(DEPDIR)%.d,$(PRECOMPILED_HEADER))
 
-maintainer-clean:
-	@rm -fv $(CATCH)
-
 test: setup $(TARGET)
 	$(RUNCMD)$(TARGET) $(TESTOPTIONS)
 
-check: test
+coverage: setup $(COVERAGETARGET)
+	$(RUNCMD)$(COVERAGETARGET) $(TESTOPTIONS)
+	$(GCOVR) $(GCOVRFLAGS) . > $(REPORT)
