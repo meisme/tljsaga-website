@@ -2,7 +2,7 @@
 #
 # File: Makefile
 # Use:  Build the tests
-# Version: 2016.10.05
+# Version: 2016.10.11
 #
 # Copyright © 2016 Kristian Høy Horsberg
 # Available under version 3 of GNU Affero General Public License
@@ -14,8 +14,9 @@ SHELL = /bin/sh
 
 NAME = tljsaga-website-tests
 
+LIBS = -lcppcms -lbooster
 CXXFLAGS = -g -Wall -pedantic -std=c++11
-LDLIBS = $(LIBS) -lcppcms -lbooster
+LDLIBS = $(LIBS)
 
 GCOVR = gcovr
 GCOVRFLAGS = --xml-pretty -r
@@ -55,9 +56,8 @@ TESTOBJECT = $(TESTFILE:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 DEPDIR := .d
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
-COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 COVFLAGS = -fprofile-arcs -ftest-coverage -fPIC -O0 -g
- 
+
 COMPILE.cpp = $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 COVERAGE.COMPILE.cpp = $(COMPILE.cpp) $(COVFLAGS)
 LINK = $(CXX) $(LDFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
@@ -65,6 +65,7 @@ COVERAGE.LINK = $(LINK) $(COVFLAGS) -lgcov
 POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 
 .PHONY: all warning setup clean distclean run maintainer-clean win32-clean test coverage
+.SUFFIXES:
 
 all: setup $(TARGET) $(COVERAGETARGET)
 
@@ -92,14 +93,7 @@ setup: warning $(OBJDIR) $(BINDIR) $(DEPDIR) $(COV_OBJDIR) $(COV_MAINOBJDIR) $(C
 $(CATCH):
 	wget https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp -O $@ || rm -f $(CATCH)
 
-$(OBJDIR)/%.o : $(SRCDIR)/%.cpp $(DEPDIR)/%.d
-	@test -d "$(@D)" || mkdir -p "$(@D)"
-	@test -d "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))" || mkdir -p "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))"
-	@echo COMPILE.cpp $< -o $@
-	@$(COMPILE.cpp) -c $< -o $@
-	@$(POSTCOMPILE)
-
-$(MAIN_OBJDIR)/%.o: $(MAINSRC)/%.cpp $(DEPDIR)/%.d
+$(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(DEPDIR)/%.d
 	@test -d "$(@D)" || mkdir -p "$(@D)"
 	@test -d "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))" || mkdir -p "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))"
 	@echo COMPILE.cpp $< -o $@
@@ -163,9 +157,7 @@ $(DEPDIR)/%.d: ;
 
 .PRECIOUS: $(TARGET) $(COVERAGETARGET) $(OBJECTS) $(COV_OBJECTS) $(COV_MAINOBJECTS) $(DEPDIR)/%.d
 
--include $(patsubst $(SRCDIR)%.cpp,$(DEPDIR)%.d,$(CPP_SOURCES))
--include $(patsubst $(SRCDIR)%.c,$(DEPDIR)%.d,$(C_SOURCES))
--include $(patsubst $(SRCDIR)%,$(DEPDIR)%.d,$(PRECOMPILED_HEADER))
+-include $(patsubst $(SRCDIR)%.cpp,$(DEPDIR)%.d,$(SOURCES))
 
 test: setup $(TARGET)
 	$(RUNCMD)$(TARGET) $(TESTOPTIONS)

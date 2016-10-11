@@ -2,7 +2,7 @@
 #
 # File: Makefile
 # Use:  Build the application
-# Version: 2016.10.05
+# Version: 2016.10.11
 #
 # Copyright © 2016 Kristian Høy Horsberg
 # Available under version 3 of GNU Affero General Public License
@@ -37,16 +37,13 @@ rwildcard=$(wildcard $1$2) $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2))
 TEMPLATES:= $(call rwildcard,$(TMPLDIR)/,*.tmpl)
 TEMPLATE_SOURCE := $(SRCDIR)/templates.tmpl-cpp
 TEMPLATE_OBJECT := $(TEMPLATE_SOURCE:$(SRCDIR)/%.tmpl-cpp=$(OBJDIR)/%.o)
-CPP_SOURCES  := $(call rwildcard,$(SRCDIR)/,*.cpp)
-C_SOURCES  := $(call rwildcard,$(SRCDIR)/,*.c)
-SOURCES := $(CPP_SOURCES) $(C_SOURCES)
+SOURCES := $(call rwildcard,$(SRCDIR)/,*.cpp)
 DATA_HEADERS := $(call rwildcard,$(DATAHEADERDIR)/,*.h)
 OBJECTS := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
 DEPDIR := .d
 DEPFLAGS = -MT $@ -MMD -MP -MF $(DEPDIR)/$*.Td
 
-COMPILE.c = $(CC) $(DEPFLAGS) $(CFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 COMPILE.cpp = $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 COMPILE.gch = $(CXX) -MT $@ -MMD -MP -MF $(patsubst $(SRCDIR)%,$(DEPDIR)%,$@).Td $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 COMPILE.tmpl-cpp = $(CXX) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH) -x c++
@@ -77,13 +74,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cpp $(DEPDIR)/%.d $(PRECOMPILED_HEADER).gch
 	@$(COMPILE.cpp) -c $< -o $@
 	@$(POSTCOMPILE)
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c $(DEPDIR)/%.d
-	@test -d "$(@D)" || mkdir -p "$(@D)"
-	@test -d "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))" || mkdir -p "$(patsubst $(OBJDIR)/%,$(DEPDIR)/%,$(@D))"
-	@echo COMPILE.c $< -o $@
-	@$(COMPILE.c) -c $< -o $@
-	@$(POSTCOMPILE)
-
 $(PRECOMPILED_HEADER).gch: $(PRECOMPILED_HEADER)
 	@test -d "$(@D)" || mkdir -p "$(@D)"
 	@test -d "$(patsubst $(SRCDIR)/%,$(DEPDIR)/%,$(@D))" || mkdir -p "$(patsubst $(SRCDIR)/%,$(DEPDIR)/%,$(@D))"
@@ -94,13 +84,13 @@ $(PRECOMPILED_HEADER).gch: $(PRECOMPILED_HEADER)
 $(TEMPLATE_SOURCE): $(TEMPLATES)
 	cppcms_tmpl_cc $^ -o $@
 
-$(TEMPLATE_OBJECT): $(OBJECT_DIR) $(TEMPLATE_SOURCE) $(DATA_HEADERS)
+$(TEMPLATE_OBJECT): $(TEMPLATE_SOURCE) $(DATA_HEADERS)
 	@echo COMPILE.tmpl-cpp $< -o $@
 	@$(COMPILE.tmpl-cpp) -c $< -o $@
 
 $(TARGET): $(OBJECTS) $(TEMPLATE_OBJECT)
-	@echo LINK $(OBJECTS) $(TEMPLATE_OBJECT) -o $@ $(LOADLIBES) $(LDLIBS)
-	@$(LINK) $(OBJECTS) $(TEMPLATE_OBJECT) -o $@ $(LOADLIBES) $(LDLIBS)
+	@echo LINK $^ -o $@ $(LDLIBS)
+	@$(LINK) $^ -o $@ $(LDLIBS)
 
 clean:
 	@test -d "$(OBJDIR)" && find "$(OBJDIR)" -name *.o | xargs rm -fv || :
@@ -115,6 +105,7 @@ win32-clean:
 	@rm -rfv $(WIN32DIR)/Release
 	@rm -rfv $(WIN32DIR)/ipch
 	@rm -rfv $(WIN32DIR)/packages
+	@rm -rfv $(WIN32DIR)/.vs
 
 distclean: clean win32-clean
 	@test -d "$(OBJDIR)" && find "$(OBJDIR)" -type d | tac | xargs rmdir -v || :
@@ -154,8 +145,7 @@ $(DEPDIR)/%.d: ;
 
 .PRECIOUS: $(TARGET) $(OBJECTS) $(DEPDIR)/%.d
 
--include $(patsubst $(SRCDIR)%.cpp,$(DEPDIR)%.d,$(CPP_SOURCES))
--include $(patsubst $(SRCDIR)%.c,$(DEPDIR)%.d,$(C_SOURCES))
+-include $(patsubst $(SRCDIR)%.cpp,$(DEPDIR)%.d,$(SOURCES))
 -include $(patsubst $(SRCDIR)%,$(DEPDIR)%.d,$(PRECOMPILED_HEADER))
 
 # Everything below is cruft for GNU compliance
