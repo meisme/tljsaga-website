@@ -15,8 +15,7 @@ SHELL = /bin/sh
 NAME = tljsaga-website
 
 LIBS = -lcppcms -lbooster
-CXXFLAGS = -g -Wall -std=c++11
-LDFLAGS = -L/usr/local/lib/
+CXXFLAGS = -g -Wall -pedantic -std=c++11
 LDLIBS = $(LIBS)
 
 SRCDIR = src
@@ -25,6 +24,7 @@ BINDIR = bin
 TESTDIR = tests
 TMPLDIR = src/templates
 DATAHEADERDIR = src/data
+WIN32DIR= win32
 
 TARGET = $(BINDIR)/$(NAME)
 PRECOMPILED_HEADER = $(SRCDIR)/website.h
@@ -103,18 +103,25 @@ $(TARGET): $(OBJECTS) $(TEMPLATE_OBJECT)
 	@$(LINK) $(OBJECTS) $(TEMPLATE_OBJECT) -o $@ $(LOADLIBES) $(LDLIBS)
 
 clean:
-	test -d "$(OBJDIR)" && find "$(OBJDIR)" -name *.o | xargs rm -f || :
-	find -name *.Td | xargs rm -f
-	find -name *.tmpl-cpp | xargs rm -f
-	rm -f $(TARGET)
+	@test -d "$(OBJDIR)" && find "$(OBJDIR)" -name *.o | xargs rm -fv || :
+	@find -name *.Td | xargs rm -fv
+	@find -name *.tmpl-cpp | xargs rm -fv
+	@rm -fv $(TARGET)
 	@cd "$(TESTDIR)" && $(MAKE) clean
 
-distclean: clean
-	test -d "$(OBJDIR)" && find "$(OBJDIR)" -type d | tac | xargs rmdir || :
-	test -d "$(BINDIR)" && find "$(BINDIR)" -type d | tac | xargs rmdir || :
-	test -d "$(DEPDIR)" && find "$(DEPDIR)" -name *.d -type f | xargs rm -f || :
-	test -d "$(DEPDIR)" && find "$(DEPDIR)" -type d | tac | xargs rmdir || :
-	test -e "$(PRECOMPILED_HEADER).gch" && rm "$(PRECOMPILED_HEADER).gch" || :
+win32-clean:
+	@rm -fv $(WIN32DIR)/*.VC.db
+	@rm -rfv $(WIN32DIR)/Debug
+	@rm -rfv $(WIN32DIR)/Release
+	@rm -rfv $(WIN32DIR)/ipch
+	@rm -rfv $(WIN32DIR)/packages
+
+distclean: clean win32-clean
+	@test -d "$(OBJDIR)" && find "$(OBJDIR)" -type d | tac | xargs rmdir -v || :
+	@test -d "$(BINDIR)" && find "$(BINDIR)" -type d | tac | xargs rmdir -v || :
+	@test -d "$(DEPDIR)" && find "$(DEPDIR)" -name *.d -type f | xargs rm -fv || :
+	@test -d "$(DEPDIR)" && find "$(DEPDIR)" -type d | tac | xargs rmdir -v || :
+	@rm -fv "$(PRECOMPILED_HEADER).gch"
 	@cd "$(TESTDIR)" && $(MAKE) distclean
 
 run: all
@@ -152,17 +159,6 @@ install-ps: install
 install-strip: install
 
 mostlyclean: clean
-
-maintainer-clean: distclean
-	@echo -en '\n'
-	@echo -e '\e[1;31mThis command is intended for maintainers to use; it'
-	@echo -e 'deletes files that may need special tools to rebuild.\e[0m'
-	@read -p "Continue? [y/N] " yn; \
-		case $$yn in \
-			y*|Y* ) printf 'Yes.\n\n' ; true ;;\
-			* ) printf 'No.\n\n'; false ;;\
-		esac
-	@cd "$(TESTDIR)" && $(MAKE) maintainer-clean
 
 uninstall:
 	@echo "Application not installable - nothing to uninstall"

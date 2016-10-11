@@ -14,13 +14,13 @@ SHELL = /bin/sh
 
 NAME = tljsaga-website-tests
 
-CXXFLAGS = -g -Wall -std=c++11
-LDFLAGS = -L/usr/local/lib/
+CXXFLAGS = -g -Wall -pedantic -std=c++11
 LDLIBS = $(LIBS) -lcppcms -lbooster
 
 SRCDIR = src
 OBJDIR = obj
 BINDIR = bin
+WIN32DIR= win32
 MAINSRC = ../src
 MAINOBJ = ../obj
 MAINFILE = $(MAINSRC)/website.cpp
@@ -48,8 +48,7 @@ COMPILE.cpp = $(CXX) $(DEPFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 LINK = $(CXX) $(LDFLAGS) $(CXXFLAGS) $(CPPFLAGS) $(TARGET_ARCH)
 POSTCOMPILE = mv -f $(DEPDIR)/$*.Td $(DEPDIR)/$*.d
 
-.PHONY: all setup clean distclean run maintainer-clean test check
-
+.PHONY: all setup clean distclean run maintainer-clean win32-clean test check
 
 all: setup $(TARGET)
 
@@ -86,22 +85,38 @@ $(TARGET): $(CATCH) $(OBJECTS) $(TEMPLATE_OBJECT)
 	@echo LINK $(OBJECTS) $(TEMPLATE_OBJECT) -o $@ $(LOADLIBES) $(LDLIBS)
 	@$(LINK) $(OBJECTS) $(TEMPLATE_OBJECT) -o $@ $(LOADLIBES) $(LDLIBS)
 
-clean:
-	test -d "$(OBJDIR)" && find "$(OBJDIR)" -name *.o | xargs rm -f || :
-	find -name *.Td | xargs rm -f
-	find -name *.tmpl-cpp | xargs rm -f
-	rm -f $(TARGET)
-
-distclean:
-	test -d "$(OBJDIR)" && find "$(OBJDIR)" -type d | tac | xargs rmdir || :
-	test -d "$(BINDIR)" && find "$(BINDIR)" -type d | tac | xargs rmdir || :
-	test -d "$(DEPDIR)" && find "$(DEPDIR)" -name *.d -type f | xargs rm -f || :
-	test -d "$(DEPDIR)" && find "$(DEPDIR)" -type d | tac | xargs rmdir || :
-	test -e "$(PRECOMPILED_HEADER).gch" && rm "$(PRECOMPILED_HEADER).gch" || :
 
 run: all
 	$(RUNCMD)$(TARGET) $(TESTOPTIONS)
 
+clean:
+	@test -d "$(OBJDIR)" && find "$(OBJDIR)" -name \*.o | xargs rm -vf || :
+	@find -name \*.Td | xargs rm -fv
+	@rm -fv $(TARGET)
+
+win32-clean:
+	@rm -fv $(WIN32DIR)/*.VC.db
+	@rm -rfv $(WIN32DIR)/Debug
+	@rm -rfv $(WIN32DIR)/Release
+	@rm -rfv $(WIN32DIR)/ipch
+	@rm -rfv $(WIN32DIR)/packages
+
+distclean: win32-clean
+	@test -d "$(OBJDIR)" && find "$(OBJDIR)" -type d | tac | xargs rmdir -v || :
+	@test -d "$(BINDIR)" && find "$(BINDIR)" -type d | tac | xargs rmdir -v || :
+	@test -d "$(DEPDIR)" && find "$(DEPDIR)" -name *.d -type f | xargs rm -fv || :
+	@test -d "$(DEPDIR)" && find "$(DEPDIR)" -type d | tac | xargs rmdir -v || :
+
+maintainer-clean: distclean
+	@echo -en '\n'
+	@echo -e '\e[1;31mThis command is intended for maintainers to use; it'
+	@echo -e 'deletes files that may need special tools to rebuild.\e[0m'
+	@read -p "Continue? [y/N] " yn; \
+		case $$yn in \
+			y*|Y* ) printf 'Yes.\n\n' ; true ;;\
+			* ) printf 'No.\n\n'; false ;;\
+		esac
+	@cd "$(TESTDIR)" && $(MAKE) maintainer-clean
 
 $(DEPDIR)/%.d: ;
 
@@ -112,7 +127,9 @@ $(DEPDIR)/%.d: ;
 -include $(patsubst $(SRCDIR)%,$(DEPDIR)%.d,$(PRECOMPILED_HEADER))
 
 maintainer-clean:
-	rm -f $(CATCH)
+	@rm -fv $(CATCH)
 
-test: run
+test: setup $(TARGET)
+	$(RUNCMD)$(TARGET) $(TESTOPTIONS)
+
 check: test
