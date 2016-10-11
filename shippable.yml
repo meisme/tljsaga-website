@@ -4,6 +4,9 @@ compiler:
   - gcc
 
 build:
+  cache: true
+  cache_dir_list:
+    - $SHIPPABLE_BUILD_DIR
   ci:
     - printf "deb http://apt.cppcms.com/ trusty main\ndeb-src http://apt.cppcms.com/ trusty main\n" > cppcms.list
     - sudo mv cppcms.list /etc/apt/sources.list.d/
